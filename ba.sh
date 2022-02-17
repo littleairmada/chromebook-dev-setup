@@ -1,33 +1,41 @@
-	#!/usr/bin/env bash
+#!/usr/bin/env bash
 
 # This script is used to setup ChromeOs, or Debian 10 Buster, as an Erlang / Elixir / OTP / Phoenix development environment.
-# 1) We install asdf version manager for the purpose of managing language and framework versions;
-# 2) We use asdf version manager to Install Erlang and Elixir;
-# 
+# The only dependency of this script is that it be run in bash.
 #
-# TODO: Consider having two functions, e.g. export_required_vars and bashrc_file_changes, these two functions should
-# 1) export variables which persist in the system after the script completes, and 2) put required ~/.bashrc entries
-# for future program use.
-# TODO: Remember after testing, remove the .asdf directory and .bashrc entries to clean up after a test
+# 1) This script installs asdf version manager for the purpose of managing the various language and framework versions.
+# 2) The script then uses apt package manager to install all of the required dependencies for Erlang/Elixir/OTP/Phoenix,
+# plus some additional desired packages such as Vim.
+# 3) Necesary environment variables are set appropriately in either of the .bash_profile, or .bashrc files
+# 4) The script, using asdf version manager, installs Erlang, Elixir and Node.js plugins.
+# 5) The specified versions of Erlang, Elixir and Node.js versions are installed.
+# 6) Elixir's Hex package manager is installed, it is used to install the specified Phoenix version.
+# 7) Finally SublimeText is installed.
 #
-# TODO: Include https in development, refer Programming WebRTC, Serving Https In Development.
- # TODO: Install Rust, investigate preferred method, via asf or using rustup (script)
- # TODO: Install jetbrains-toolbox to enable installation of IntelliJ Idea Ultimate and Android Studio
+# If you repeatedly run this script, you will accumulate duplicate entries in either your .bash_profile or .bashrc files.
+# This will require you to manually edit the entries to remove duplicates.
+# TODO: before adding entries to .bashrc or .bash_profile files, first check for the existence of the entries.
 #
-# Backup:
-# $ cp Documents/ba.sh /mnt/chromeos/GoogleDrive/MyDrive/bash_scripts/ba.sh
+# Additionally, after running this script once, before running it again you should delete the entire .asdf directory
+# with a command such as $ rm -R ~/.asdf.
+# TODO: First check if .asdf directory exists and if asdf is functional before installing a new version.
+#
+# Other improvements to be made in future:
+# TODO: Include https in development, refer book Programming WebRTC, Serving Https In Development.
+# TODO: Install Rust, investigate preferred method, via asf or using rustup (script)
+# TODO: Install jetbrains-toolbox to enable installation of IntelliJ Idea Ultimate and Android Studio
 #
 set -e
-# Ensure that apt package installation is truly quiet and non-interactive
+# ENSURE QUIET NON-INTERACTIVE PACKAGE INSTALLATION
 export DEBIAN_FRONTEND=noninterractive;
 
-# Set the framework / library versions to install
+# SET VERSIONS TO BE INSTALLED
 ERLANG_VERSION='24.2.1';
 ELIXIR_VERSION='1.13.3';
 PHOENIX_VERSION='1.6.6';
 NODEJS_VERSION='17.5.0';
 
-# Variable Declarations:
+# VARIABLE DECLARATIONS
 INTENT="You are about to setup an Erlang, Elixir / OTP & Phoenix development environment on a ChromeOs Debian based operating system!\n";
 MESSAGE="Do you want to proceed with the installation and setup process?";
 
@@ -41,14 +49,15 @@ STEP_6="Finally, commencing install of Phoenix framework!";
 STEP_7="For the pièce de résistance, Sublime Text 4";
 STEP_8="The drums are DONE.....Setup completed successfully!";
 
-# upon program error, exit with message to user
+# EXIT UPON PROGRAM ERROR
 on_exit () {
     echo "The installation process did NOT run through to completion!";
 }
-# set the exit trap
+# SET THE ERROR TRAP
 trap on_exit ERR
 
-# yes_or_no is a function to prompt for user feedback to determine if installation is desired.
+# yes_or_no()
+# A FUNCTION TO ENABLE USER INTERACTION
 function yes_or_no {
     while true; do
         read -p "$* [y/n]: " yn
@@ -65,7 +74,7 @@ function yes_or_no {
     done
 }
 
-# get asdf version manager's current branch version from the asdf-vm web page
+# GET asdf VERSION MANAGER'S CURRENT VERSION FROM THE asdf-vm WEB PAGE
 function get_asdf_current_version {
     # digit notation (\d) does not work in bash, use [0-9] instead
     URI="https://asdf-vm.com/guide/getting-started.html#_1-install-dependencies";
@@ -111,11 +120,11 @@ export KERL_BUILD_DOCS='yes'
 EOF
 	# by setting KERL_BUILD_DOCS to yes, the HTML & MAN docs are installed by default
 	# source the exported var's to ensure available for this install / build
-    . ~/.bash_profile
+    . . ~/.bash_profile
 }
 
 # Install Sublime Text as the editor of choice
-# TODO: Automate file selection
+# TODO: GET THE LATEST VERSION, NOT VERSION 3
 function install_sublime_text {
 	# Install Sublime Text from Stable channel
 	wget -qO - https://download.sublimetext.com/sublimehq-pub.gpg | sudo apt-key add -
@@ -129,7 +138,7 @@ function install_sublime_text {
 # check_file_exists whill check the passed variable ( a file name including extension )
 # the function accepts one required parameter, called 'filename', whilst the second parameter
 # 'location' is an optional argument with a default value of the currently logged in user's home directory
-# e.g. /home/matgarland/  
+# e.g. /home/<username>/  
 function check_file_exists {
 	file_name=${1:'~/'};
 	location=${2:"/home/${USER}/"};
@@ -138,8 +147,9 @@ function check_file_exists {
 	fi
 	return false;
 }
-
-# ****** begin script execution ******
+# ***********************************************
+# ********** KICK OFF SCRIPT EXECUTION ********** 
+# ***********************************************
 echo -e "${INTENT}";
 # Prompt user to begin installation process
 yes_or_no "${MESSAGE}" && {
@@ -154,46 +164,46 @@ yes_or_no "${MESSAGE}" && {
     eval "${cur_ver}";	
     # notify user of success, or otherwise, of the asdf installation 
     if [[ $? -eq 0 ]]; then
-		# Installation was successful
+	# Installation was successful
     	echo -e 'asdf Version Manager was successfully installed!';
-	    echo -e 'Setting environment variables and updating shell profile files!';
-		add_bash_profile_entries;
-		set_environment_vars;
-		echo -e "${STEP_1}";
-		# add  Erlang Plugin
-		asdf plugin add erlang https://github.com/asdf-vm/asdf-erlang.git
-		# add Elixir
-		asdf plugin add elixir https://github.com/asdf-vm/asdf-elixir.git
-		# add node.js
-		asdf plugin add nodejs https://github.com/asdf-vm/asdf-nodejs.git
-		echo -e "${STEP_2}";
-		# install erlang and set global version
-		eval "asdf install erlang ${ERLANG_VERSION}";
-		eval "asdf global erlang ${ERLANG_VERSION}";
-		echo -e "${STEP_3}";
-		# install elixir and set global version
-		eval "asdf install elixir ${ELIXIR_VERSION}";
-		eval "asdf global elixir ${ELIXIR_VERSION}";
-		echo -e "${STEP_4}";
-		# install nodejs and set global version
-		eval "asdf install nodejs ${NODEJS_VERSION}";
-		eval "asdf global nodejs ${NODEJS_VERSION}";
-		echo -e "${STEP_5}";
-		# install Hex package manager, using --force to silently accept installation
-		mix local.hex --force
-		echo -e "${STEP_6}";
-		# install Phoenix Application Generator
-		eval "mix archive.install hex phx_new ${PHOENIX_VERSION} --force";
-		# Install Sublime Text
-		echo -e "${STEP_7}";
-		install_sublime_text;
-	    echo -e "${STEP_8}";
-	    # Exit script with success flag set
-	    exit 0;
+	echo -e 'Setting environment variables and updating shell profile files!';
+	add_bash_profile_entries;
+	set_environment_vars;
+	echo -e "${STEP_1}";
+	# add  Erlang Plugin
+	asdf plugin add erlang https://github.com/asdf-vm/asdf-erlang.git
+	# add Elixir
+	asdf plugin add elixir https://github.com/asdf-vm/asdf-elixir.git
+	# add node.js
+	asdf plugin add nodejs https://github.com/asdf-vm/asdf-nodejs.git
+	echo -e "${STEP_2}";
+	# install erlang and set global version
+	eval "asdf install erlang ${ERLANG_VERSION}";
+        eval "asdf global erlang ${ERLANG_VERSION}";
+	echo -e "${STEP_3}";
+	# install elixir and set global version
+	eval "asdf install elixir ${ELIXIR_VERSION}";
+	eval "asdf global elixir ${ELIXIR_VERSION}";
+	echo -e "${STEP_4}";
+	# install nodejs and set global version
+	eval "asdf install nodejs ${NODEJS_VERSION}";
+	eval "asdf global nodejs ${NODEJS_VERSION}";
+	echo -e "${STEP_5}";
+	# install Hex package manager, using --force to silently accept installation
+	mix local.hex --force
+	echo -e "${STEP_6}";
+	# install Phoenix Application Generator
+	eval "mix archive.install hex phx_new ${PHOENIX_VERSION} --force";
+	# Install Sublime Text
+	echo -e "${STEP_7}";
+	install_sublime_text;
+	echo -e "${STEP_8}";
+	# Exit script with success flag set
+	exit 0;
     else
-		# Installation failed
-		echo "Installation of asdf Version Manager failed!";
-		# exit script due to error
-		exit 1;
+        # Installation failed
+        echo "Installation of asdf Version Manager failed!";
+	# exit script due to error
+	exit 1;
     fi
 }
