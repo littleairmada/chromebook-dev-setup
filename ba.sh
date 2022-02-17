@@ -118,9 +118,9 @@ function set_environment_vars {
 # ensure current and future documentation will be installed for erlang and elixir with asdf-vm
 export KERL_BUILD_DOCS='yes'
 EOF
-	# by setting KERL_BUILD_DOCS to yes, the HTML & MAN docs are installed by default
-	# source the exported var's to ensure available for this install / build
-    . . ~/.bash_profile
+    # by setting KERL_BUILD_DOCS to yes, the HTML & MAN docs are installed by default
+    # source the exported var's to ensure available for this install / build
+    . ~/.bash_profile
 }
 
 # Install Sublime Text as the editor of choice
