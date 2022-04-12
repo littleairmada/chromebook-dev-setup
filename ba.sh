@@ -3,6 +3,8 @@
 # This script is used to setup ChromeOs, or Debian 10 Buster, as an Erlang / Elixir / OTP / Phoenix development environment.
 # The only dependency of this script is that it be run in bash.
 #
+# This script is based on https://github.com/swarmcommerce/chromebook-dev-setup with modifications.
+#
 # 1) This script installs asdf version manager for the purpose of managing the various language and framework versions.
 # 2) The script then uses apt package manager to install all of the required dependencies for Erlang/Elixir/OTP/Phoenix,
 # plus some additional desired packages such as Vim.
@@ -10,7 +12,7 @@
 # 4) The script, using asdf version manager, installs Erlang, Elixir and Node.js plugins.
 # 5) The specified versions of Erlang, Elixir and Node.js versions are installed.
 # 6) Elixir's Hex package manager is installed, it is used to install the specified Phoenix version.
-# 7) Finally SublimeText is installed.
+# 7) Finally several tools are installed using asdf (1password-cli, awscli, terraform, golang) and SublimeText is installed.
 #
 # If you repeatedly run this script, you will accumulate duplicate entries in either your .bash_profile or .bashrc files.
 # This will require you to manually edit the entries to remove duplicates.
@@ -24,19 +26,27 @@
 # TODO: Include https in development, refer book Programming WebRTC, Serving Https In Development.
 # TODO: Install Rust, investigate preferred method, via asf or using rustup (script)
 # TODO: Install jetbrains-toolbox to enable installation of IntelliJ Idea Ultimate and Android Studio
+# TODO: Install vscode and my commonly used vscode extensions
+# TODO: Install python3 and virtualenv for Python3, Django, and Flask development
 #
 set -e
 # ENSURE QUIET NON-INTERACTIVE PACKAGE INSTALLATION
 export DEBIAN_FRONTEND=noninterractive;
 
 # SET VERSIONS TO BE INSTALLED
-ERLANG_VERSION='24.2.1';
-ELIXIR_VERSION='1.13.3';
+ERLANG_VERSION='24.3.3';
+ELIXIR_VERSION='1.13.4';
 PHOENIX_VERSION='1.6.6';
 NODEJS_VERSION='17.5.0';
+1PASSWORDCLI_VERSION='2.0.0';
+AWSCLI_VERSION='2.5.4';
+GOLANG_VERSION='1.18';
+TERRAFORM_VERSION='1.1.8';
+TERRAFORMVALIDATOR_VERSION='3.1.3';
+HUGO_VERSION='0.96.0';
 
 # VARIABLE DECLARATIONS
-INTENT="You are about to setup an Erlang, Elixir / OTP & Phoenix development environment on a ChromeOs Debian based operating system!\n";
+INTENT="You are about to setup an Erlang / Elixir / OTP / Phoenix & GoLang development environment on a ChromeOs Debian based operating system!\n";
 MESSAGE="Do you want to proceed with the installation and setup process?";
 
 # NOTIFICATIONS AND STAGES OF SETUP
@@ -46,7 +56,7 @@ STEP_3="Commencing install of Elixir, hope it's a nice coffee, hang in there!";
 STEP_4="Commencing install of node.js, maybe.....grab abother coffee? Not too long to go!";
 STEP_5="Installing the Hex package manager! We're almost there!";
 STEP_6="Finally, commencing install of Phoenix framework!";
-STEP_7="For the pièce de résistance, Sublime Text 4";
+STEP_7="Installing additional tools including Sublime Text 4";
 STEP_8="The drums are DONE.....Setup completed successfully!";
 
 # EXIT UPON PROGRAM ERROR
@@ -176,6 +186,13 @@ yes_or_no "${MESSAGE}" && {
 	asdf plugin add elixir https://github.com/asdf-vm/asdf-elixir.git
 	# add node.js
 	asdf plugin add nodejs https://github.com/asdf-vm/asdf-nodejs.git
+	# add additional tools
+	asdf plugin add 1password-cli
+	asdf plugin add awscli
+	asdf plugin add golang
+	asdf plugin add terraform
+	asdf plugin add terraform-validator
+	asdf plugin add hugo
 	echo -e "${STEP_2}";
 	# install erlang and set global version
 	eval "asdf install erlang ${ERLANG_VERSION}";
@@ -196,6 +213,18 @@ yes_or_no "${MESSAGE}" && {
 	eval "mix archive.install hex phx_new ${PHOENIX_VERSION} --force";
 	# Install Sublime Text
 	echo -e "${STEP_7}";
+	eval "asdf install 1password-cli ${1PASSWORDCLI_VERSION}";
+	eval "asdf global 1password-cli ${1PASSWORDCLI_VERSION}";
+	eval "asdf install awscli ${AWSCLI_VERSION}";
+	eval "asdf global awscli ${AWSCLI_VERSION}";
+	eval "asdf install golang ${GOLANG_VERSION}";
+	eval "asdf global golang ${GOLANG_VERSION}";
+	eval "asdf install terraform ${TERRAFORM_VERSION}";
+	eval "asdf global terraform ${TERRAFORM_VERSION}";
+	eval "asdf install terraform-validator ${TERRAFORMVALIDATOR_VERSION}";
+	eval "asdf global terraform-validator ${TERRAFORMVALIDATOR_VERSION}";
+	eval "asdf install hugo ${HUGO_VERSION}";
+	eval "asdf global hugo ${HUGO_VERSION}";
 	install_sublime_text;
 	echo -e "${STEP_8}";
 	# Exit script with success flag set
